@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aes 示例</title>
+
+    <script src="js/jquery.js" type="text/javascript"></script>
+    <script src="js/crypto/crypto-js.js" type="text/javascript"></script>
+</head>
+<body>
+
+    AES加解密测试
+    <br>
+    <br>
+    请您输入:<input type="text" id="data" style="width:240px;" > <input type="button" onclick="submit()" value="加密"/>
+    <br>
+    <br>
+    js加密后：<textarea rows="3" cols="20" id="encrypt"></textarea>
+    <br>
+    <br>
+    java解密后：<textarea rows="3" cols="20" id="decrypt"></textarea>
+    <br>
+    <br>
+    java信息：<textarea rows="3" cols="20" id="dataJava"></textarea>
+    <br>
+    <br>
+    java加密：<textarea rows="3" cols="20" id="encode"></textarea>
+    <br>
+    <br>
+    js解密：<textarea rows="3" cols="20" id="decode"></textarea>
+
+
+    <script type="text/javascript">
+
+        // 随机数生成算法。 len-生成结果的长度， radix-生成结果的组成，是二进制，十进制还是十六进制数。
+        function uuid(len, radix) {
+            var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+            var uuid = [], i;
+            radix = radix || chars.length;
+
+            if (len) {
+                // Compact form
+                for (i = 0; i < len; i++) {
+                    uuid[i] = chars[0 | Math.random()*radix];
+                }
+            } else {
+                // rfc4122, version 4 form
+                var r;
+                // rfc4122 requires these characters
+                uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+                uuid[14] = '4';
+                // Fill in random data.  At i==19 set the high bits of clock sequence as
+                // per rfc4122, sec. 4.1.5
+                for (i = 0; i < 36; i++) {
+                    if (!uuid[i]) {
+                        r = 0 | Math.random()*16;
+                        uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
+                    }
+                }
+            }
+            return uuid.join('');
+        }
+
+        /*
+         * 加密函数
+         * message - 明文数据
+         * key - 密钥
+         */
+        function encryptData(message, key){
+            var keyHex = CryptoJS.enc.Utf8.parse(key);
+            var iv = CryptoJS.enc.Utf8.parse(key.substr(0,16));
+            var srcs = CryptoJS.enc.Utf8.parse(message);
+            var encrypted = CryptoJS.AES.encrypt(srcs, keyHex, {
+                iv:iv,
+                mode:CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            return encrypted.toString();
+        }
+
+        /*
+         * 解密函数
+         * ciphertext - 要解密的密文。
+         */
+        function decryptData(ciphertext, key){
+            var keyHex = CryptoJS.enc.Utf8.parse(key);
+            var iv = CryptoJS.enc.Utf8.parse(key.substr(0,16));
+            var decrypt = CryptoJS.AES.decrypt(ciphertext, keyHex, {
+                iv:iv,
+                mode:CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            return CryptoJS.enc.Utf8.stringify(decrypt).toString();
+        }
+
+
+        function submit(){
+            var key = uuid(32,10);
+            var data = $("#data").val();
+            console.log("utf8 :%o",CryptoJS.enc.Utf8.parse(data));
+            console.log("Latin1 :%o",CryptoJS.enc.Latin1.parse(data));
+
+            var encrypt = encryptData(data,key);
+
+            $("#encrypt").val(encrypt);
+
+
+            $.ajax({
+                url:"/aesTest",
+                type:"POST",
+                data:{data:data,encrypt:encrypt,key:key,_flag:1},
+                success:function (resp) {
+                    console.log("返回值:%o",resp);
+                    $("#decrypt").val(resp.decrypt);
+                    $("#dataJava").val(resp.message);
+                    $("#encode").val(resp.encrypt);
+                    console.log(resp.encrypt);
+                    console.log(decodeURIComponent(resp.encrypt));
+
+                    console.log(resp.key);
+                    var decrypt = decryptData(decodeURIComponent(resp.encrypt),resp.key);
+                    console.log(decrypt);
+                    $("#decode").val(decrypt);
+
+
+                },error:function (request,textStatus,e) {
+
+                }
+            });
+
+        }
+    </script>
+</body>
+</html>

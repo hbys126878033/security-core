@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RSA AES 加密示例</title>
+    <script src="js/jquery.js" type="text/javascript"></script>
+    <script src="js/crypto/crypto-js.js" type="text/javascript"></script>
+    <script src="js/rsa/Barrett.js" type="text/javascript"></script>
+    <script src="js/rsa/BigInt.js" type="text/javascript"></script>
+    <script src="js/rsa/RSA.js" type="text/javascript"></script>
+    <script src="js/crypt_common.js" type="text/javascript"></script>
+    <script src="js/common.js" type="text/javascript"></script>
+</head>
+<body>
+    <p> AES 对数据加密，然后RSA对aes的密钥进行加密 </p>
+    <br>
+
+    <form id="form1">
+
+
+    登录名:<input type="text" id="name" name="username"/>
+    <br>
+    密码：<input type="text" id="password" name="password"/>
+    <br>
+        <input type="button" value="submit" onclick="doSave()">
+    </form>
+
+    <script type="text/javascript">
+
+        var key ,modulus,exponent;
+        $.ajax({url:"/getPublicKey",dataType:"json",type:"POST", success: function(resp){
+                //console.log(resp);
+                key = resp.publicKey;
+                modulus = resp.publicModulus;
+                exponent = resp.publicExponent;
+                //console.log(key);
+                console.log(modulus);
+                console.log(exponent);
+            }
+        });
+
+        function doSave() {
+            var data = {};
+            var formData = $("#form1").serializeArray();
+
+            $.each(formData,function(index){
+                data[this.name] = this.value;
+            });
+
+            crypto.ajaxPost("/rsa_aesInterceptor",data,{telphone:"18616795572"},modulus,exponent,function(resp){
+                alert("SUCCESS = "+ resp.success+", message = "+ resp.encryptData);
+                console.log("ajax 返回值:"+resp.encryptData);
+                if (common.isJson(resp.encryptData)){
+                    var d = $.parseJSON(resp.encryptData);
+                    alert("您之前传入的参数是："+d.username+" , "+d.password);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

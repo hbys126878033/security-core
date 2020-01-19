@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery.js" type="text/javascript"></script>
+    <script src="js/rsa/Barrett.js" type="text/javascript"></script>
+    <script src="js/rsa/BigInt.js" type="text/javascript"></script>
+    <script src="js/rsa/RSA.js" type="text/javascript"></script>
+</head>
+<body>
+
+    RSA 加密示例:<br>
+
+    <input type="text" id="name" > <input type="button" onclick="submit()" value="提交"/>
+    <br>
+    <br>
+    <br>
+    <textarea  id="decode" cols="22" rows="4"></textarea>
+
+    <script type="text/javascript">
+        var key ,modulus,exponent;
+        $.ajax({url:"/getPublicKey",dataType:"json",type:"POST", success: function(resp){
+                //console.log(resp);
+                key = resp.publicKey;
+                modulus = resp.publicModulus;
+                exponent = resp.publicExponent;
+                //console.log(key);
+                //console.log(modulus);
+                //console.log(exponent);
+            }
+        });
+
+        function submit(){
+            //1024位就是130，2048位就是260.。。。。。。
+            setMaxDigits(130);
+            var key1 = new RSAKeyPair(exponent,"",modulus);
+
+            var name = $("#name").val();
+            console.log("输入框的值:%o",name);
+            name = encodeURIComponent(name);
+            console.log("输入框的值encodeURIComponent后为:%o",name);
+            var encrypt = encryptedString(key1,name);
+            console.log("加密后为:%o",encrypt);
+
+            $.ajax({url:"/postEncryptData",dataType:"json",type:"POST",data:{data:encrypt,chiper:name,_flag:1}, success: function(resp) {
+                console.log("返回值 resp : %o",resp);
+                    var key2 = new RSAKeyPair("", exponent, modulus);
+                    var result = decryptedString(key2, resp.msg);
+                    console.log("rsa 解密后的值：%o",result);
+                    var rightResult = result.split("").reverse().join("");
+                    console.log("字符串倒序后的值：%o",result);
+                    rightResult = decodeURIComponent(rightResult);
+                    console.log("decodeURIComponent后的值：%o",result);
+                    $("#decode").val(rightResult);
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
