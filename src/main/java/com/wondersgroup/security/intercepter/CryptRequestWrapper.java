@@ -20,6 +20,8 @@ public class CryptRequestWrapper extends HttpServletRequestWrapper {
     /** 储存参数的键值对 */
     private Map<String,String[]> params;
 
+
+
     public CryptRequestWrapper(HttpServletRequest request,Map<String,String[]> params) {
         super(request);
         this.origRequest = request;

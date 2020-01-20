@@ -1,9 +1,8 @@
 package com.wondersgroup.security.controller;
 
+import com.wondersgroup.security.controller.dto.User;
 import com.wondersgroup.security.crypto.annotation.EncryptAndDecrypt;
-import com.wondersgroup.security.crypto.message.InputDto;
 import com.wondersgroup.security.crypto.message.OutPutDto;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,9 +37,4 @@ public class UserController {
 
 }
 
-@Data
-class User {
-    private String name;
-    private String sex;
-    private String age;
-}
+

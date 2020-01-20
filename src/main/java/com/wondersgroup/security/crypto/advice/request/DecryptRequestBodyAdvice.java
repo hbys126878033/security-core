@@ -9,6 +9,7 @@ import com.wondersgroup.security.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -18,8 +19,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 
+import java.beans.PropertyDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
@@ -84,6 +87,26 @@ public class DecryptRequestBodyAdvice implements RequestBodyAdvice {
 
     @Override
     public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+        System.out.println(body);
+        System.out.println(body.getClass());
+        PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(body.getClass());
+        String value    ;
+        try {
+
+            for (int i = 0; i < propertyDescriptors.length; i++) {
+                System.out.println("============<propertyDescriptors>==============");
+                String name = propertyDescriptors[i].getName();
+                System.out.println(name);
+                if (!name.equals("class")) {
+                    value = (String) propertyDescriptors[i].getReadMethod().invoke(body);
+                    System.out.println(value);
+                }
+                System.out.println("============<propertyDescriptors>==============");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return body;
     }
 
