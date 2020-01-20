@@ -26,7 +26,7 @@ public class SecurityCoreApplication {
         filter.setName("decryptFilter");
         filter.setOrder(1);
         filter.addUrlPatterns("/*");
-        filter.addInitParameter("enabledXss","false");
+        filter.addInitParameter("enabledXss","true");
         return filter;
     }
 

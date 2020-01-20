@@ -192,10 +192,8 @@ public class IndexController implements InitializingBean {
     @RequestMapping(value="/rsa_aesInterceptor",method=RequestMethod.POST)
     @ResponseBody
     @EncryptAndDecrypt
-    public OutPutDto rsaAesInterceptor(String decrypt, String telphone, String _flag){
+    public OutPutDto rsaAesInterceptor(UserDto userDto, String telphone, String _flag){
         log.info("telphone = {}",telphone);
-        log.info("encrypt = {} ",decrypt);
-        UserDto userDto = JsonUtil.decode(decrypt, UserDto.class);
         System.out.println(userDto);
         //return new OutPutDto().setSuccess(true).setData("rsa aes 通过filter自动解密成功").setFlag(_flag);
         return new OutPutDto().setSuccess(true).setData(userDto).setFlag(_flag);

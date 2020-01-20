@@ -2,6 +2,7 @@ package com.wondersgroup.security.crypto.filter;
 
 import com.wondersgroup.security.crypto.core.AesUtils;
 import com.wondersgroup.security.crypto.core.RsaUtils;
+import com.wondersgroup.security.util.JsonUtil;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
 import org.springframework.util.StringUtils;
@@ -50,6 +51,18 @@ public class DecryptFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        /**页面只能被本站页面嵌入到iframe或者frame中；*/
+        response.setHeader("X-Frame-Options", "SAMEORIGIN");
+        /** 浏览器根据给出的MIME类型来解析文档*/
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        /** 1; mode=block：启用XSS保护，并在检查到XSS攻击时，停止渲染页面（例如IE8中，检查到攻击时，整个页面会被一个#替换*/
+        response.setHeader("X-XSS-Protection", "1;mode=block");
+        if("HTTPS".endsWith(request.getScheme().toUpperCase())){
+            response.setHeader("Set-Cookie", "JSESSIONID=" + request.getSession().getId() + ";Secure;HttpOnly");
+        }else{
+            response.setHeader("Set-Cookie", "JSESSIONID=" + request.getSession().getId() + ";HttpOnly");
+        }
+
         BCRSAPrivateCrtKey privateKey = RsaUtils.getPrivateKey();
         String privateKeyString = RsaUtils.encodeKey2String(privateKey.getEncoded());
         AsymmetricKeyParameter keyParameter = RsaUtils.getPrivateKeyParameter(privateKeyString);
@@ -66,11 +79,11 @@ public class DecryptFilter extends OncePerRequestFilter {
             } else  {
                 aesKey = RsaUtils.decrypt4Base64(key,keyParameter);
             }
+
+            /** 完全解密后的业务参数 */
             String decrypt = AesUtils.decrypt(encryptData, aesKey);
-            Map<String,String[]> param = new HashMap<>(request.getParameterMap().size() + 2);
-            param.put("decrypt",new String[]{decrypt});
             /* request对象重新包装一下,后面使用request的时候就是使用当前包装的对象*/
-            DecryptRequestWrapper cryptRequest = new DecryptRequestWrapper(request,param,Boolean.valueOf(this.enabledXss));
+            DecryptRequestWrapper cryptRequest = new DecryptRequestWrapper(request,JsonUtil.decode2MapObject(decrypt),Boolean.valueOf(this.enabledXss));
             filterChain.doFilter(cryptRequest,response);
         } else {
             filterChain.doFilter(request,response);

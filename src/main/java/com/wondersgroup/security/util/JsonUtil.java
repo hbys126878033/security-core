@@ -120,6 +120,14 @@ public class JsonUtil {
         }
     }
 
+    public static Map<String, String[]> decode2MapStringArray(String message)  {
+        try{
+            return mapper.readValue(message, new TypeReference<Map<String, String[]>>(){});
+        }catch (Exception e){
+            throw  new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Object> decode2MapObject(String message)  {
         try{
             return mapper.readValue(message, new TypeReference<Map<String, Object>>(){});

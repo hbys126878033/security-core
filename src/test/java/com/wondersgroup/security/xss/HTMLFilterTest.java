@@ -1,8 +1,9 @@
 package com.wondersgroup.security.xss;
 
-import org.junit.Before;
+import org.apache.commons.text.StringEscapeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * @author chenlin
@@ -25,5 +26,15 @@ public class HTMLFilterTest {
         System.out.println(content);
         System.out.println(htmlFilter);
         System.out.println(this.htmlFilter.filter(content));
+    }
+
+
+    @Test
+    public void test02(){
+        String value =  "百度";
+        System.out.println(StringEscapeUtils.escapeHtml4(HtmlUtils.htmlEscape(value)));
+        System.out.println(org.apache.commons.lang.StringEscapeUtils.escapeHtml("陈林"));
+        System.out.println(HtmlUtils.htmlEscape("陈林"));
+        System.out.println(StringEscapeUtils.escapeHtml4("陈林"));
     }
 }
